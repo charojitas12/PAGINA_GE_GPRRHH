@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>People Management Hub</title>
+<style>
+  :root{
+    --navy:#0e2a47;        /* azul oscuro encabezados */
+    --navy-2:#16395f;
+    --steel:#2f5d8a;
+    --accent:#3b82c4;
+    --bg:#f4f6f9;           /* fondo principal */
+    --panel:#ffffff;
+    --line:#e3e8ef;
+    --muted:#6b7785;
+    --ink:#1d2b3a;
+    --green:#1f9d6b;        /* cumplimiento */
+    --green-bg:#e6f6ef;
+    --amber:#d99412;        /* advertencia */
+    --amber-bg:#fbf2dd;
+    --red:#d6453c;          /* crítico */
+    --red-bg:#fbe7e5;
+    --blue:#2f6fb0;         /* informativo */
+    --blue-bg:#e6effa;
+    --radius:12px;
+    --shadow:0 1px 3px rgba(16,42,71,.08),0 6px 20px rgba(16,42,71,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;
+  }
+  /* ---------- LOGIN ---------- */
+  #login{
+    position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#0e2a47,#16395f 55%,#2f5d8a);
+  }
+  .login-card{
+    background:#fff;border-radius:16px;padding:38px 34px;width:360px;max-width:92vw;
+    box-shadow:0 20px 60px rgba(0,0,0,.3);
+  }
+  .login-card h1{font-size:20px;color:var(--navy);margin-bottom:4px}
+  .login-card p.sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+  .login-card label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin:14px 0 6px}
+  .login-card select,.login-card input{
+    width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px;background:#fafbfd;
+  }
+  .brandmark{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+  .brandmark .dot{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--steel),var(--accent));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px}
+  .btn{
+    cursor:pointer;border:none;border-radius:9px;font-weight:600;font-size:14px;
+    padding:11px 16px;background:var(--navy);color:#fff;transition:.15s;
+  }
+  .btn:hover{background:var(--navy-2)}
+  .btn.block{width:100%;margin-top:22px}
+  .btn.ghost{background:#eef2f7;color:var(--navy)}
+  .btn.ghost:hover{background:#e2e9f1}
+  .btn.sm{padding:7px 12px;font-size:13px}
+  .btn.green{background:var(--green)} .btn.green:hover{filter:brightness(.95)}
+
+  /* ---------- LAYOUT ---------- */
+  .app{display:none;min-height:100vh}
+  .sidebar{
+    position:fixed;top:0;left:0;bottom:0;width:240px;background:var(--navy);color:#cdd9e6;
+    display:flex;flex-direction:column;z-index:40;transition:transform .25s;
+  }
+  .sidebar .logo{display:flex;align-items:center;gap:10px;padding:20px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .sidebar .logo .dot{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--steel),var(--accent));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+  .sidebar .logo b{color:#fff;font-size:15px;line-height:1.1}
+  .sidebar .logo span{font-size:11px;color:#90a4bb}
+  nav{padding:12px 10px;flex:1;overflow:auto}
+  nav a{
+    display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;color:#cdd9e6;
+    text-decoration:none;font-size:14px;margin-bottom:2px;cursor:pointer;position:relative;
+  }
+  nav a:hover{background:rgba(255,255,255,.07);color:#fff}
+  nav a.active{background:linear-gradient(135deg,var(--steel),var(--accent));color:#fff;font-weight:600}
+  nav a .ico{width:18px;text-align:center}
+  nav a .badge{margin-left:auto;background:var(--red);color:#fff;font-size:11px;
+    min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 5px}
+  .side-foot{padding:14px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:#90a4bb}
+
+  .main{margin-left:240px;min-height:100vh}
+  header.top{
+    background:#fff;border-bottom:1px solid var(--line);padding:0 24px;height:62px;
+    display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:30;
+  }
+  .hamb{display:none;font-size:22px;background:none;border:none;cursor:pointer;color:var(--navy)}
+  header.top h2{font-size:17px;color:var(--navy);font-weight:600}
+  header.top .spacer{flex:1}
+  .bell{position:relative;cursor:pointer;font-size:19px;color:var(--navy);padding:8px}
+  .bell .badge{position:absolute;top:2px;right:2px;background:var(--red);color:#fff;font-size:10px;
+    min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+  .who{display:flex;align-items:center;gap:10px}
+  .avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--steel),var(--accent));
+    color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px}
+  .who small{display:block;color:var(--muted);font-size:12px}
+  .who b{font-size:13px;color:var(--navy)}
+
+  .content{padding:24px;max-width:1280px}
+  .page{display:none}.page.active{display:block;animation:fade .25s}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ---------- COMPONENTS ---------- */
+  .welcome{background:linear-gradient(120deg,var(--navy),var(--steel));color:#fff;border-radius:var(--radius);
+    padding:24px 26px;margin-bottom:22px;box-shadow:var(--shadow)}
+  .welcome h3{font-size:21px;margin-bottom:5px}
+  .welcome p{color:#cfe0f0;font-size:14px}
+  .welcome .quick{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}
+  .welcome .btn.ghost{background:rgba(255,255,255,.15);color:#fff}
+  .welcome .btn.ghost:hover{background:rgba(255,255,255,.25)}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+  .card .k{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+  .card .v{font-size:30px;font-weight:700;color:var(--navy);margin-top:6px}
+  .card .t{font-size:12px;margin-top:6px}
+  .card .t.up{color:var(--green)}.card .t.down{color:var(--red)}
+  .card.accent-red{border-left:4px solid var(--red)}
+  .card.accent-amber{border-left:4px solid var(--amber)}
+  .card.accent-green{border-left:4px solid var(--green)}
+  .card.accent-blue{border-left:4px solid var(--blue)}
+
+  .grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin-bottom:22px}
+  @media(max-width:900px){.grid2{grid-template-columns:1fr}}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .panel .ph{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+  .panel .ph h4{font-size:15px;color:var(--navy)}
+  .panel .ph .spacer{flex:1}
+  .panel .pb{padding:16px 18px}
+
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:11px 14px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;user-select:none;white-space:nowrap}
+  th:hover{color:var(--navy)}
+  tbody tr:hover{background:#f8fafc}
+  td .ttl{font-weight:600;color:var(--ink)}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+  .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  .p-red{background:var(--red-bg);color:var(--red)}
+  .p-amber{background:var(--amber-bg);color:var(--amber)}
+  .p-green{background:var(--green-bg);color:var(--green)}
+  .p-blue{background:var(--blue-bg);color:var(--blue)}
+  .p-gray{background:#eef1f5;color:var(--muted)}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .toolbar input,.toolbar select{padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:13px;background:#fff}
+  .toolbar input[type=search]{min-width:200px}
+  .toolbar .spacer{flex:1}
+
+  /* progress bars */
+  .bar{height:9px;background:#eef1f5;border-radius:6px;overflow:hidden;min-width:90px}
+  .bar > i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--steel),var(--accent))}
+  .barline{display:flex;align-items:center;gap:10px}
+  .barline .lbl{width:130px;font-size:13px}
+  .barline .pct{width:42px;text-align:right;font-weight:600;font-size:13px;color:var(--navy)}
+
+  /* alert rows */
+  .alert-row{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+  .alert-row:last-child{border-bottom:none}
+  .alert-dot{width:10px;height:10px;border-radius:50%;margin-top:5px;flex:none}
+  .d-red{background:var(--red)}.d-amber{background:var(--amber)}.d-green{background:var(--green)}.d-blue{background:var(--blue)}
+  .alert-row .body b{font-size:13px;color:var(--ink)}
+  .alert-row .body p{font-size:12px;color:var(--muted);margin-top:2px}
+  .alert-row .body small{font-size:11px;color:#9aa6b3}
+  .alert-row .act{margin-left:auto}
+
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(14,42,71,.5);display:none;align-items:flex-start;justify-content:center;
+    z-index:60;padding:40px 16px;overflow:auto}
+  .modal.open{display:flex}
+  .modal .box{background:#fff;border-radius:14px;width:520px;max-width:96vw;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal .mh{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center}
+  .modal .mh h4{color:var(--navy);font-size:16px}
+  .modal .mh .x{margin-left:auto;cursor:pointer;font-size:20px;color:var(--muted);background:none;border:none}
+  .modal .mb{padding:20px 22px;display:grid;gap:14px}
+  .modal .mf{padding:16px 22px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px}
+  .field input,.field select,.field textarea{
+    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;background:#fafbfd;font-family:inherit}
+  .field textarea{resize:vertical;min-height:70px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+  /* dashboard embed */
+  .embed-wrap{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#fff;box-shadow:var(--shadow)}
+  .embed-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:#fbfcfe}
+  .embed-bar input{flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:13px}
+  .embed-stage{position:relative;background:#f0f3f7;min-height:520px}
+  .embed-stage iframe{width:100%;height:560px;border:none;display:block}
+  .embed-empty{padding:60px 24px;text-align:center;color:var(--muted)}
+  .embed-empty .ic{font-size:42px;margin-bottom:12px}
+  .embed-stage.full{position:fixed;inset:0;z-index:70;min-height:100vh}
+  .embed-stage.full iframe{height:100vh}
+  .exit-full{position:fixed;top:14px;right:16px;z-index:71;display:none}
+  .embed-stage.full + .exit-full{display:block}
+
+  /* toast */
+  #toast{position:fixed;bottom:22px;right:22px;z-index:90;display:flex;flex-direction:column;gap:10px}
+  .toast{background:var(--navy);color:#fff;padding:13px 18px;border-radius:10px;font-size:13px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);display:flex;align-items:center;gap:10px;animation:slidein .25s}
+  .toast.ok{background:var(--green)}.toast.warn{background:var(--amber)}.toast.err{background:var(--red)}
+  @keyframes slidein{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+
+  .role-tag{font-size:11px;background:#eef2f7;color:var(--steel);padding:3px 9px;border-radius:20px;font-weight:600}
+  .hint{font-size:12px;color:var(--muted)}
+  .empty{padding:30px;text-align:center;color:var(--muted);font-size:13px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:4px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+  @media(max-width:780px){
+    .sidebar{transform:translateX(-100%)}
+    .sidebar.show{transform:none}
+    .main{margin-left:0}
+    .hamb{display:block}
+    .grid2{grid-template-columns:1fr}
+    .who small{display:none}
+    .two{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="login">
+  <div class="login-card">
+    <div class="brandmark"><div class="dot">PM</div><div><b style="color:var(--navy);font-size:16px">People Management Hub</b></div></div>
+    <h1>Inicia sesión</h1>
+    <p class="sub">Plataforma interna de Gestión de Personas</p>
+    <label>Usuario</label>
+    <select id="loginUser"></select>
+    <label>Contraseña</label>
+    <input type="password" id="loginPass" value="demo1234" placeholder="••••••••">
+    <button class="btn block" onclick="doLogin()">Entrar</button>
+    <p class="hint" style="margin-top:16px;text-align:center">Demo: elige un perfil y entra. El rol define los permisos.</p>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div class="app" id="app">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo"><div class="dot">PM</div><div><b>People Mgmt Hub</b><span>Gestión de Personas</span></div></div>
+    <nav id="nav">
+      <a data-page="inicio" class="active"><span class="ico">▣</span> Inicio</a>
+      <a data-page="dashboard"><span class="ico">📊</span> Dashboard</a>
+      <a data-page="tareas"><span class="ico">✔</span> Tareas <span class="badge" id="nav-tareas">0</span></a>
+      <a data-page="recordatorios"><span class="ico">🔔</span> Recordatorios</a>
+      <a data-page="alertas"><span class="ico">⚠</span> Alertas <span class="badge" id="nav-alertas">0</span></a>
+      <a data-page="usuarios"><span class="ico">👥</span> Usuarios</a>
+      <a data-page="notificaciones"><span class="ico">📥</span> Notificaciones</a>
+      <a data-page="reportes"><span class="ico">📄</span> Reportes</a>
+    </nav>
+    <div class="side-foot">Ingenia Asociados · v1.0</div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="top">
+      <button class="hamb" onclick="document.getElementById('sidebar').classList.toggle('show')">☰</button>
+      <h2 id="pageTitle">Inicio</h2>
+      <div class="spacer"></div>
+      <div class="bell" onclick="go('notificaciones')">🔔<span class="badge" id="bellBadge">0</span></div>
+      <div class="who">
+        <div class="avatar" id="meAvatar">AR</div>
+        <div><b id="meName">—</b><small id="meRole">—</small></div>
+        <button class="btn ghost sm" onclick="logout()">Salir</button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ===== INICIO ===== -->
+      <section class="page active" id="page-inicio">
+        <div class="welcome">
+          <h3 id="welcomeHi">Hola</h3>
+          <p>Este es el resumen ejecutivo de Gestión de Personas. Revisa tus pendientes, alertas y tareas próximas a vencer.</p>
+          <div class="quick">
+            <button class="btn ghost" onclick="go('dashboard')">Ver dashboard</button>
+            <button class="btn ghost" onclick="go('tareas')">Mis tareas</button>
+            <button class="btn ghost" onclick="go('alertas')">Alertas</button>
+          </div>
+        </div>
+
+        <div class="cards" id="kpiCards"></div>
+
+        <div class="grid2">
+          <div class="panel">
+            <div class="ph"><h4>Tareas próximas a vencer</h4><div class="spacer"></div><button class="btn ghost sm" onclick="go('tareas')">Ver todas</button></div>
+            <div class="pb" style="padding:0"><table><tbody id="homeTasks"></tbody></table></div>
+          </div>
+          <div class="panel">
+            <div class="ph"><h4>Alertas importantes</h4><div class="spacer"></div><button class="btn ghost sm" onclick="go('alertas')">Ver todas</button></div>
+            <div class="pb" id="homeAlerts"></div>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel">
+            <div class="ph"><h4>Cumplimiento por área</h4></div>
+            <div class="pb" id="homeAreas"></div>
+          </div>
+          <div class="panel">
+            <div class="ph"><h4>Recordatorios pendientes</h4><div class="spacer"></div><button class="btn ghost sm" onclick="go('recordatorios')">Gestionar</button></div>
+            <div class="pb" id="homeReminders"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== DASHBOARD ===== -->
+      <section class="page" id="page-dashboard">
+        <div class="panel" style="margin-bottom:18px">
+          <div class="pb">
+            <p style="font-size:15px;color:var(--navy);font-weight:600">Dashboard de Gestión de Personas</p>
+            <p class="hint" style="margin-top:4px">Consulta aquí los principales indicadores de Gestión de Personas para la toma de decisiones internas.</p>
+          </div>
+        </div>
+        <div class="embed-wrap">
+          <div class="embed-bar">
+            <input id="embedUrl" placeholder="Pega aquí el enlace del dashboard de Google AI Studio (o un enlace embebido)">
+            <button class="btn sm" onclick="loadEmbed()">Cargar</button>
+            <button class="btn ghost sm" onclick="refreshEmbed()">↻ Actualizar</button>
+            <button class="btn ghost sm" onclick="fullEmbed()">⛶ Pantalla completa</button>
+            <button class="btn ghost sm" onclick="downloadReport('Dashboard','pdf')">⤓ Reporte</button>
+          </div>
+          <div class="embed-stage" id="embedStage">
+            <div class="embed-empty">
+              <div class="ic">📊</div>
+              <p style="font-weight:600;color:var(--navy)">Aún no has conectado un dashboard</p>
+              <p style="margin-top:6px">Pega el enlace de tu dashboard de Google AI Studio en la barra superior y pulsa <b>Cargar</b>.<br>Quedará guardado para tus próximas visitas.</p>
+            </div>
+          </div>
+        </div>
+        <button class="btn exit-full" id="exitFull" onclick="fullEmbed()">Salir de pantalla completa ✕</button>
+      </section>
+
+      <!-- ===== TAREAS ===== -->
+      <section class="page" id="page-tareas">
+        <div class="toolbar">
+          <input type="search" id="taskSearch" placeholder="Buscar tarea…" oninput="renderTasks()">
+          <select id="fArea" onchange="renderTasks()"><option value="">Toda el área</option></select>
+          <select id="fPrio" onchange="renderTasks()">
+            <option value="">Toda prioridad</option><option>Alta</option><option>Media</option><option>Baja</option></select>
+          <select id="fEstado" onchange="renderTasks()">
+            <option value="">Todo estado</option><option>Pendiente</option><option>En proceso</option><option>Completada</option><option>Vencida</option></select>
+          <div class="spacer"></div>
+          <button class="btn sm" id="btnNewTask" onclick="openTask()">＋ Nueva tarea</button>
+        </div>
+        <div class="panel">
+          <div class="pb" style="padding:0;overflow:auto">
+            <table id="taskTable">
+              <thead><tr>
+                <th onclick="sortTasks('titulo')">Tarea</th>
+                <th onclick="sortTasks('responsable')">Responsable</th>
+                <th onclick="sortTasks('area')">Área</th>
+                <th onclick="sortTasks('vence')">Vence</th>
+                <th onclick="sortTasks('prioridad')">Prioridad</th>
+                <th onclick="sortTasks('estado')">Estado</th>
+                <th></th>
+              </tr></thead>
+              <tbody id="taskBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== RECORDATORIOS ===== -->
+      <section class="page" id="page-recordatorios">
+        <div class="toolbar">
+          <input type="search" id="remSearch" placeholder="Buscar recordatorio…" oninput="renderReminders()">
+          <select id="remEstado" onchange="renderReminders()">
+            <option value="">Todo estado</option><option>Activo</option><option>Pausado</option><option>Enviado</option></select>
+          <div class="spacer"></div>
+          <button class="btn sm" id="btnNewRem" onclick="openReminder()">＋ Nuevo recordatorio</button>
+        </div>
+        <div class="panel">
+          <div class="pb" style="padding:0;overflow:auto">
+            <table>
+              <thead><tr><th>Recordatorio</th><th>Destinatarios</th><th>Envío</th><th>Frecuencia</th><th>Canal</th><th>Estado</th><th></th></tr></thead>
+              <tbody id="remBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ALERTAS ===== -->
+      <section class="page" id="page-alertas">
+        <div class="legend" style="margin-bottom:14px">
+          <span><i style="background:var(--red)"></i> Crítico</span>
+          <span><i style="background:var(--amber)"></i> Atención</span>
+          <span><i style="background:var(--green)"></i> Completado</span>
+          <span><i style="background:var(--blue)"></i> Informativo</span>
+        </div>
+        <div class="toolbar">
+          <select id="aNivel" onchange="renderAlerts()">
+            <option value="">Todo nivel</option><option>Crítico</option><option>Atención</option><option>Completado</option><option>Informativo</option></select>
+          <div class="spacer"></div>
+          <button class="btn ghost sm" onclick="markAllAlertsRead()">Marcar todo como leído</button>
+        </div>
+        <div class="panel"><div class="pb" id="alertList"></div></div>
+      </section>
+
+      <!-- ===== USUARIOS ===== -->
+      <section class="page" id="page-usuarios">
+        <div class="toolbar">
+          <input type="search" id="userSearch" placeholder="Buscar usuario…" oninput="renderUsers()">
+          <div class="spacer"></div>
+          <button class="btn sm" id="btnNewUser" onclick="openUser()">＋ Nuevo usuario</button>
+        </div>
+        <div class="panel">
+          <div class="pb" style="padding:0;overflow:auto">
+            <table>
+              <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Área</th><th>Estado</th><th></th></tr></thead>
+              <tbody id="userBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:18px">
+          <div class="ph"><h4>Roles y permisos</h4></div>
+          <div class="pb">
+            <table>
+              <thead><tr><th>Capacidad</th><th>Administrador RRHH</th><th>Jefe de área</th><th>Colaborador</th></tr></thead>
+              <tbody>
+                <tr><td>Ver todo</td><td>✔</td><td>Su equipo</td><td>Sus tareas</td></tr>
+                <tr><td>Crear tareas</td><td>✔</td><td>—</td><td>—</td></tr>
+                <tr><td>Actualizar estado de tareas</td><td>✔</td><td>✔ asignadas</td><td>✔ propias</td></tr>
+                <tr><td>Programar alertas / recordatorios</td><td>✔</td><td>—</td><td>—</td></tr>
+                <tr><td>Gestionar usuarios</td><td>✔</td><td>—</td><td>—</td></tr>
+                <tr><td>Recibir alertas y recordatorios</td><td>✔</td><td>✔</td><td>✔</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== NOTIFICACIONES ===== -->
+      <section class="page" id="page-notificaciones">
+        <div class="toolbar">
+          <select id="nTipo" onchange="renderNotifs()">
+            <option value="">Todo tipo</option><option>Alerta</option><option>Recordatorio</option><option>Tarea</option></select>
+          <div class="spacer"></div>
+          <button class="btn ghost sm" onclick="markAllNotifsRead()">Marcar todo como leído</button>
+        </div>
+        <div class="panel"><div class="pb" id="notifList"></div></div>
+      </section>
+
+      <!-- ===== REPORTES ===== -->
+      <section class="page" id="page-reportes">
+        <div class="cards" id="reportKpis"></div>
+        <div class="grid2">
+          <div class="panel">
+            <div class="ph"><h4>Cumplimiento por responsable</h4></div>
+            <div class="pb" id="repByOwner"></div>
+          </div>
+          <div class="panel">
+            <div class="ph"><h4>Cumplimiento por área</h4></div>
+            <div class="pb" id="repByArea"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph"><h4>Generar reporte</h4></div>
+          <div class="pb">
+            <p class="hint" style="margin-bottom:14px">Elige el contenido y el formato. El archivo se descarga al instante con los datos actuales.</p>
+            <div class="toolbar">
+              <select id="repTipo">
+                <option>Tareas pendientes</option><option>Tareas vencidas</option>
+                <option>Recordatorios enviados</option><option>Alertas críticas</option>
+                <option>Cumplimiento por responsable</option><option>Cumplimiento por área</option>
+              </select>
+              <button class="btn sm green" onclick="downloadReport(repTipo.value,'csv')">⤓ CSV</button>
+              <button class="btn sm" onclick="downloadReport(repTipo.value,'excel')">⤓ Excel</button>
+              <button class="btn ghost sm" onclick="downloadReport(repTipo.value,'pdf')">⤓ PDF</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal" id="modal"><div class="box">
+  <div class="mh"><h4 id="modalTitle">—</h4><button class="x" onclick="closeModal()">✕</button></div>
+  <div class="mb" id="modalBody"></div>
+  <div class="mf" id="modalFoot"></div>
+</div></div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================ DATA ============================ */
+const STORE_KEY='pmh_state_v1';
+const AREAS=['Reclutamiento','Compensaciones','Desarrollo','Bienestar','Administración de personal','Relaciones laborales'];
+const today=new Date();
+function dISO(off){const d=new Date(today);d.setDate(d.getDate()+off);return d.toISOString().slice(0,10);}
+function fmt(iso){if(!iso)return'—';const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('es-PE',{day:'2-digit',month:'short'});}
+function daysTo(iso){return Math.round((new Date(iso+'T00:00:00')-new Date(today.toISOString().slice(0,10)+'T00:00:00'))/864e5);}
+
+const SEED={
+  users:[
+    {id:'U1',nombre:'Ana Ramírez',correo:'ana.ramirez@ingenia.pe',rol:'Administrador RRHH',area:'Administración de personal',estado:'Activo'},
+    {id:'U2',nombre:'Felipe Soto',correo:'felipe.soto@ingenia.pe',rol:'Jefe de área',area:'Reclutamiento',estado:'Activo'},
+    {id:'U3',nombre:'Bernarda Quispe',correo:'bernarda.q@ingenia.pe',rol:'Jefe de área',area:'Compensaciones',estado:'Activo'},
+    {id:'U4',nombre:'Julio Mendoza',correo:'julio.m@ingenia.pe',rol:'Colaborador',area:'Desarrollo',estado:'Activo'},
+    {id:'U5',nombre:'Sandra León',correo:'sandra.leon@ingenia.pe',rol:'Colaborador',area:'Bienestar',estado:'Activo'},
+    {id:'U6',nombre:'Mónica Torres',correo:'monica.t@ingenia.pe',rol:'Jefe de área',area:'Relaciones laborales',estado:'Inactivo'}
+  ],
+  tasks:[
+    {id:'T1',titulo:'Renovación de contratos trimestre',responsable:'Felipe Soto',area:'Reclutamiento',creada:dISO(-12),vence:dISO(3),prioridad:'Alta',estado:'En proceso',coment:'4 contratos por renovar.'},
+    {id:'T2',titulo:'Entrega de documentos pendientes',responsable:'Julio Mendoza',area:'Administración de personal',creada:dISO(-9),vence:dISO(1),prioridad:'Alta',estado:'Pendiente',coment:'Faltan certificados de 3 ingresos.'},
+    {id:'T3',titulo:'Evaluaciones de desempeño Q2',responsable:'Bernarda Quispe',area:'Desarrollo',creada:dISO(-20),vence:dISO(8),prioridad:'Media',estado:'En proceso',coment:''},
+    {id:'T4',titulo:'Seguimiento de vacaciones',responsable:'Sandra León',area:'Bienestar',creada:dISO(-6),vence:dISO(5),prioridad:'Baja',estado:'Pendiente',coment:''},
+    {id:'T5',titulo:'Cierre de planilla mensual',responsable:'Ana Ramírez',area:'Compensaciones',creada:dISO(-4),vence:dISO(-1),prioridad:'Alta',estado:'Vencida',coment:'Pendiente validación de horas extra.'},
+    {id:'T6',titulo:'Inducción de nuevos ingresos',responsable:'Felipe Soto',area:'Reclutamiento',creada:dISO(-3),vence:dISO(10),prioridad:'Media',estado:'Pendiente',coment:'2 ingresos para el lunes.'},
+    {id:'T7',titulo:'Actualización de legajos',responsable:'Julio Mendoza',area:'Administración de personal',creada:dISO(-30),vence:dISO(-5),prioridad:'Media',estado:'Completada',coment:'Lote 2025-A cerrado.'},
+    {id:'T8',titulo:'Envío de comunicado interno',responsable:'Mónica Torres',area:'Relaciones laborales',creada:dISO(-2),vence:dISO(2),prioridad:'Baja',estado:'En proceso',coment:''},
+    {id:'T9',titulo:'Programación de capacitaciones',responsable:'Sandra León',area:'Desarrollo',creada:dISO(-15),vence:dISO(14),prioridad:'Media',estado:'Pendiente',coment:''},
+    {id:'T10',titulo:'Seguimiento de observaciones laborales',responsable:'Bernarda Quispe',area:'Relaciones laborales',creada:dISO(-8),vence:dISO(-2),prioridad:'Alta',estado:'Vencida',coment:'2 casos abiertos.'}
+  ],
+  reminders:[
+    {id:'R1',nombre:'Cierre de planilla',desc:'Recordar validación de horas antes del cierre.',destinatarios:'Compensaciones',envio:dISO(1)+' 09:00',frecuencia:'Mensual',canal:'Correo electrónico',estado:'Activo'},
+    {id:'R2',nombre:'Evaluaciones de desempeño',desc:'Recordar a jefaturas completar evaluaciones Q2.',destinatarios:'Jefes de área',envio:dISO(2)+' 08:30',frecuencia:'Semanal',canal:'Notificación interna',estado:'Activo'},
+    {id:'R3',nombre:'Documentos de ingreso',desc:'Solicitar documentos pendientes a nuevos ingresos.',destinatarios:'Julio Mendoza',envio:dISO(-1)+' 10:00',frecuencia:'Única',canal:'Correo electrónico',estado:'Enviado'},
+    {id:'R4',nombre:'Capacitación obligatoria SST',desc:'Recordatorio de inscripción.',destinatarios:'Todo el personal',envio:dISO(4)+' 12:00',frecuencia:'Personalizada',canal:'WhatsApp',estado:'Pausado'}
+  ],
+  alerts:[
+    {id:'A1',tipo:'Contrato por vencer en menos de 7 días',desc:'4 contratos vencen esta semana en Reclutamiento.',nivel:'Crítico',responsable:'Felipe Soto',fecha:dISO(0),leida:false},
+    {id:'A2',tipo:'Tarea vencida',desc:'Cierre de planilla mensual venció hace 1 día.',nivel:'Crítico',responsable:'Ana Ramírez',fecha:dISO(-1),leida:false},
+    {id:'A3',tipo:'Evaluación de desempeño no completada',desc:'Quedan 6 evaluaciones de Q2 sin completar.',nivel:'Atención',responsable:'Bernarda Quispe',fecha:dISO(0),leida:false},
+    {id:'A4',tipo:'Ausentismo elevado',desc:'Bienestar registra ausentismo sobre el promedio.',nivel:'Atención',responsable:'Sandra León',fecha:dISO(-2),leida:false},
+    {id:'A5',tipo:'Actualización de legajos',desc:'Lote 2025-A completado.',nivel:'Completado',responsable:'Julio Mendoza',fecha:dISO(-5),leida:true},
+    {id:'A6',tipo:'Comunicado interno programado',desc:'El comunicado de relaciones laborales saldrá el martes.',nivel:'Informativo',responsable:'Mónica Torres',fecha:dISO(0),leida:false}
+  ],
+  notifs:[
+    {id:'N1',tipo:'Alerta',texto:'Contrato por vencer en menos de 7 días',fecha:dISO(0)+' 08:15',leida:false},
+    {id:'N2',tipo:'Recordatorio',texto:'Recordatorio "Documentos de ingreso" enviado a Julio Mendoza',fecha:dISO(-1)+' 10:00',leida:true},
+    {id:'N3',tipo:'Tarea',texto:'Tarea "Cierre de planilla mensual" pasó a estado Vencida',fecha:dISO(-1)+' 18:00',leida:false},
+    {id:'N4',tipo:'Alerta',texto:'Ausentismo elevado en Bienestar',fecha:dISO(-2)+' 09:40',leida:true}
+  ],
+  embedUrl:''
+};
+
+let S=load();
+function load(){try{const r=localStorage.getItem(STORE_KEY);if(r)return JSON.parse(r);}catch(e){}return JSON.parse(JSON.stringify(SEED));}
+function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(S));}catch(e){}}
+let ME=null;
+
+/* ============================ AUTH ============================ */
+function initLogin(){
+  const sel=document.getElementById('loginUser');
+  sel.innerHTML=S.users.filter(u=>u.estado==='Activo').map(u=>`<option value="${u.id}">${u.nombre} — ${u.rol}</option>`).join('');
+}
+function doLogin(){
+  ME=S.users.find(u=>u.id===document.getElementById('loginUser').value);
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('meName').textContent=ME.nombre;
+  document.getElementById('meRole').innerHTML=`<span class="role-tag">${ME.rol}</span>`;
+  document.getElementById('meAvatar').textContent=initials(ME.nombre);
+  document.getElementById('welcomeHi').textContent='Hola, '+ME.nombre.split(' ')[0]+' 👋';
+  applyPermissions();
+  go('inicio');renderAll();
+  toast('Sesión iniciada como '+ME.rol,'ok');
+}
+function logout(){location.reload();}
+function initials(n){return n.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase();}
+const isAdmin=()=>ME&&ME.rol==='Administrador RRHH';
+const isJefe=()=>ME&&ME.rol==='Jefe de área';
+function applyPermissions(){
+  // only admin manages users / creates tasks / programs reminders+alerts
+  document.querySelector('[data-page=usuarios]').style.display=isAdmin()?'':'none';
+  document.getElementById('btnNewTask').style.display=isAdmin()?'':'none';
+  document.getElementById('btnNewRem').style.display=isAdmin()?'':'none';
+  document.getElementById('btnNewUser').style.display=isAdmin()?'':'none';
+}
+/* tasks visible to current role */
+function visibleTasks(){
+  if(isAdmin())return S.tasks;
+  if(isJefe())return S.tasks.filter(t=>t.area===ME.area||t.responsable===ME.nombre);
+  return S.tasks.filter(t=>t.responsable===ME.nombre);
+}
+
+/* ============================ NAV ============================ */
+const TITLES={inicio:'Inicio',dashboard:'Dashboard',tareas:'Tareas',recordatorios:'Recordatorios',alertas:'Alertas',usuarios:'Usuarios y permisos',notificaciones:'Centro de notificaciones',reportes:'Reportes'};
+document.getElementById('nav').addEventListener('click',e=>{const a=e.target.closest('a');if(a)go(a.dataset.page);});
+function go(page){
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.page===page));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('pageTitle').textContent=TITLES[page];
+  document.getElementById('sidebar').classList.remove('show');
+  if(page==='reportes')renderReports();
+  window.scrollTo(0,0);
+}
+
+/* ============================ RENDER ALL ============================ */
+function renderAll(){
+  buildFilters();renderHome();renderTasks();renderReminders();renderAlerts();renderUsers();renderNotifs();
+  document.getElementById('embedUrl').value=S.embedUrl||'';
+  if(S.embedUrl)loadEmbed(true);
+  updateBadges();
+}
+function updateBadges(){
+  const vt=visibleTasks();
+  const overdue=vt.filter(t=>t.estado==='Vencida').length;
+  const crit=S.alerts.filter(a=>!a.leida&&a.nivel==='Crítico').length;
+  const unread=S.notifs.filter(n=>!n.leida).length;
+  setBadge('nav-tareas',overdue);setBadge('nav-alertas',crit);setBadge('bellBadge',unread);
+}
+function setBadge(id,n){const el=document.getElementById(id);el.textContent=n;el.style.display=n>0?'flex':'none';}
+
+/* ---------- HOME ---------- */
+function renderHome(){
+  const vt=visibleTasks();
+  const pend=vt.filter(t=>t.estado==='Pendiente').length;
+  const proc=vt.filter(t=>t.estado==='En proceso').length;
+  const venc=vt.filter(t=>t.estado==='Vencida').length;
+  const comp=vt.filter(t=>t.estado==='Completada').length;
+  const total=vt.length||1;
+  const cumpl=Math.round(comp/total*100);
+  const crit=S.alerts.filter(a=>!a.leida&&a.nivel==='Crítico').length;
+  const remActivos=S.reminders.filter(r=>r.estado==='Activo').length;
+  document.getElementById('kpiCards').innerHTML=`
+    ${kpi('Tareas pendientes',pend+proc,'accent-blue','En proceso: '+proc)}
+    ${kpi('Tareas vencidas',venc,'accent-red',venc?'Requieren acción':'Sin vencidas','down')}
+    ${kpi('Alertas críticas',crit,'accent-amber',crit?'Sin leer':'Todo al día')}
+    ${kpi('Cumplimiento',cumpl+'%','accent-green',comp+' completadas','up')}
+    ${kpi('Recordatorios activos',remActivos,'accent-blue','Programados')}`;
+
+  // próximas a vencer
+  const upcoming=[...vt].filter(t=>t.estado!=='Completada').sort((a,b)=>daysTo(a.vence)-daysTo(b.vence)).slice(0,5);
+  document.getElementById('homeTasks').innerHTML=upcoming.map(t=>{
+    const d=daysTo(t.vence);const lbl=d<0?`Venció hace ${-d}d`:d===0?'Vence hoy':`En ${d}d`;
+    const cl=d<0?'p-red':d<=3?'p-amber':'p-gray';
+    return `<tr><td><div class="ttl">${t.titulo}</div><small class="hint">${t.responsable}</small></td>
+      <td>${prioPill(t.prioridad)}</td><td><span class="pill ${cl}">${lbl}</span></td></tr>`;
+  }).join('')||'<tr><td class="empty">Sin tareas próximas.</td></tr>';
+
+  // alertas
+  document.getElementById('homeAlerts').innerHTML=S.alerts.filter(a=>!a.leida).slice(0,4).map(alertRow).join('')||'<div class="empty">Sin alertas activas.</div>';
+
+  // áreas
+  document.getElementById('homeAreas').innerHTML=areaBars();
+
+  // recordatorios pendientes
+  document.getElementById('homeReminders').innerHTML=S.reminders.filter(r=>r.estado!=='Enviado').map(r=>
+    `<div class="alert-row"><div class="alert-dot ${r.estado==='Activo'?'d-green':'d-amber'}"></div>
+      <div class="body"><b>${r.nombre}</b><p>${r.destinatarios} · ${r.frecuencia} · ${r.canal}</p><small>Envío: ${r.envio}</small></div>
+      <span class="pill ${r.estado==='Activo'?'p-green':'p-amber'}">${r.estado}</span></div>`
+  ).join('')||'<div class="empty">Sin recordatorios pendientes.</div>';
+}
+function kpi(k,v,cls,t,dir){return `<div class="card ${cls}"><div class="k">${k}</div><div class="v">${v}</div><div class="t ${dir||''}">${t}</div></div>`;}
+function areaBars(){
+  return AREAS.map(a=>{
+    const ts=S.tasks.filter(t=>t.area===a);if(!ts.length)return'';
+    const comp=ts.filter(t=>t.estado==='Completada').length;const pct=Math.round(comp/ts.length*100);
+    return `<div class="barline" style="margin-bottom:12px"><div class="lbl">${a}</div>
+      <div class="bar" style="flex:1"><i style="width:${pct}%"></i></div><div class="pct">${pct}%</div></div>`;
+  }).join('');
+}
+function alertRow(a){
+  const map={'Crítico':'d-red','Atención':'d-amber','Completado':'d-green','Informativo':'d-blue'};
+  return `<div class="alert-row"><div class="alert-dot ${map[a.nivel]}"></div>
+    <div class="body"><b>${a.tipo}</b><p>${a.desc}</p><small>${a.responsable} · ${fmt(a.fecha)}</small></div></div>`;
+}
+
+/* ---------- TASKS ---------- */
+let taskSort={k:'vence',dir:1};
+function buildFilters(){
+  const opt=AREAS.map(a=>`<option>${a}</option>`).join('');
+  document.getElementById('fArea').innerHTML='<option value="">Toda el área</option>'+opt;
+}
+function sortTasks(k){taskSort.dir=taskSort.k===k?-taskSort.dir:1;taskSort.k=k;renderTasks();}
+function renderTasks(){
+  const q=(document.getElementById('taskSearch').value||'').toLowerCase();
+  const fa=document.getElementById('fArea').value,fp=document.getElementById('fPrio').value,fe=document.getElementById('fEstado').value;
+  let rows=visibleTasks().filter(t=>
+    (!q||t.titulo.toLowerCase().includes(q)||t.responsable.toLowerCase().includes(q))&&
+    (!fa||t.area===fa)&&(!fp||t.prioridad===fp)&&(!fe||t.estado===fe));
+  const prioRank={Alta:3,Media:2,Baja:1};
+  rows.sort((a,b)=>{let x=a[taskSort.k],y=b[taskSort.k];
+    if(taskSort.k==='prioridad'){x=prioRank[x];y=prioRank[y];}
+    return (x>y?1:x<y?-1:0)*taskSort.dir;});
+  const canEdit=t=>isAdmin()||t.responsable===ME.nombre||(isJefe()&&t.area===ME.area);
+  document.getElementById('taskBody').innerHTML=rows.map(t=>`<tr>
+    <td><div class="ttl">${t.titulo}</div>${t.coment?`<small class="hint">${t.coment}</small>`:''}</td>
+    <td>${t.responsable}</td><td>${t.area}</td>
+    <td>${fmt(t.vence)} ${dueTag(t)}</td>
+    <td>${prioPill(t.prioridad)}</td>
+    <td>${estadoPill(t.estado)}</td>
+    <td style="text-align:right;white-space:nowrap">
+      ${canEdit(t)?`<button class="btn ghost sm" onclick="openTask('${t.id}')">Editar</button>`:''}
+      ${canEdit(t)&&t.estado!=='Completada'?`<button class="btn green sm" onclick="completeTask('${t.id}')">✔</button>`:''}
+    </td></tr>`).join('')||'<tr><td colspan="7" class="empty">No hay tareas que coincidan con los filtros.</td></tr>';
+  updateBadges();
+}
+function dueTag(t){if(t.estado==='Completada')return'';const d=daysTo(t.vence);
+  if(d<0)return`<span class="pill p-red">${-d}d tarde</span>`;
+  if(d<=3)return`<span class="pill p-amber">en ${d}d</span>`;return'';}
+function prioPill(p){return `<span class="pill ${p==='Alta'?'p-red':p==='Media'?'p-amber':'p-gray'}">${p}</span>`;}
+function estadoPill(s){const m={'Pendiente':'p-gray','En proceso':'p-blue','Completada':'p-green','Vencida':'p-red'};return `<span class="pill ${m[s]}">${s}</span>`;}
+function completeTask(id){const t=S.tasks.find(x=>x.id===id);t.estado='Completada';save();renderTasks();renderHome();
+  pushNotif('Tarea',`Tarea "${t.titulo}" marcada como Completada`);toast('Tarea completada','ok');}
+
+function openTask(id){
+  const t=id?S.tasks.find(x=>x.id===id):null;
+  const ownerOpts=S.users.map(u=>`<option ${t&&t.responsable===u.nombre?'selected':''}>${u.nombre}</option>`).join('');
+  const areaOpts=AREAS.map(a=>`<option ${t&&t.area===a?'selected':''}>${a}</option>`).join('');
+  modal(id?'Editar tarea':'Nueva tarea',`
+    <div class="field"><label>Título</label><input id="m_titulo" value="${t?esc(t.titulo):''}"></div>
+    <div class="field"><label>Comentarios</label><textarea id="m_coment">${t?esc(t.coment):''}</textarea></div>
+    <div class="two">
+      <div class="field"><label>Responsable</label><select id="m_resp">${ownerOpts}</select></div>
+      <div class="field"><label>Área</label><select id="m_area">${areaOpts}</select></div>
+    </div>
+    <div class="two">
+      <div class="field"><label>Fecha de vencimiento</label><input type="date" id="m_vence" value="${t?t.vence:dISO(7)}"></div>
+      <div class="field"><label>Prioridad</label><select id="m_prio">${['Alta','Media','Baja'].map(p=>`<option ${t&&t.prioridad===p?'selected':''}>${p}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>Estado</label><select id="m_estado">${['Pendiente','En proceso','Completada','Vencida'].map(s=>`<option ${t&&t.estado===s?'selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="field"><label>Archivo adjunto (opcional)</label><input type="file" id="m_file"></div>
+  `,[
+    {t:'Cancelar',cls:'ghost',fn:closeModal},
+    {t:id?'Guardar cambios':'Crear tarea',cls:'',fn:()=>{
+      const o={titulo:val('m_titulo'),coment:val('m_coment'),responsable:val('m_resp'),area:val('m_area'),
+        vence:val('m_vence'),prioridad:val('m_prio'),estado:val('m_estado')};
+      if(!o.titulo){toast('Escribe un título','err');return;}
+      if(id){Object.assign(t,o);}else{o.id='T'+Date.now();o.creada=dISO(0);S.tasks.push(o);
+        pushNotif('Tarea',`Nueva tarea creada: "${o.titulo}"`);}
+      save();closeModal();renderTasks();renderHome();toast(id?'Tarea actualizada':'Tarea creada','ok');
+    }}
+  ]);
+}
+
+/* ---------- REMINDERS ---------- */
+function renderReminders(){
+  const q=(document.getElementById('remSearch').value||'').toLowerCase();
+  const fe=document.getElementById('remEstado').value;
+  const rows=S.reminders.filter(r=>(!q||r.nombre.toLowerCase().includes(q))&&(!fe||r.estado===fe));
+  document.getElementById('remBody').innerHTML=rows.map(r=>`<tr>
+    <td><div class="ttl">${r.nombre}</div><small class="hint">${r.desc}</small></td>
+    <td>${r.destinatarios}</td><td>${r.envio}</td><td>${r.frecuencia}</td><td>${r.canal}</td>
+    <td><span class="pill ${r.estado==='Activo'?'p-green':r.estado==='Pausado'?'p-amber':'p-blue'}">${r.estado}</span></td>
+    <td style="text-align:right;white-space:nowrap">
+      ${isAdmin()?`<button class="btn ghost sm" onclick="openReminder('${r.id}')">Editar</button>
+        <button class="btn ghost sm" onclick="toggleReminder('${r.id}')">${r.estado==='Pausado'?'Activar':'Pausar'}</button>
+        <button class="btn sm" onclick="sendReminder('${r.id}')">Enviar</button>`:'<span class="hint">Solo lectura</span>'}
+    </td></tr>`).join('')||'<tr><td colspan="7" class="empty">Sin recordatorios.</td></tr>';
+}
+function toggleReminder(id){const r=S.reminders.find(x=>x.id===id);r.estado=r.estado==='Pausado'?'Activo':'Pausado';save();renderReminders();}
+function sendReminder(id){const r=S.reminders.find(x=>x.id===id);r.estado='Enviado';save();renderReminders();renderHome();
+  pushNotif('Recordatorio',`Recordatorio "${r.nombre}" enviado a ${r.destinatarios}`);toast('Recordatorio enviado por '+r.canal,'ok');}
+function openReminder(id){
+  const r=id?S.reminders.find(x=>x.id===id):null;
+  modal(id?'Editar recordatorio':'Nuevo recordatorio',`
+    <div class="field"><label>Nombre</label><input id="r_nombre" value="${r?esc(r.nombre):''}"></div>
+    <div class="field"><label>Descripción</label><textarea id="r_desc">${r?esc(r.desc):''}</textarea></div>
+    <div class="two">
+      <div class="field"><label>Destinatarios</label><input id="r_dest" value="${r?esc(r.destinatarios):''}" placeholder="Área o persona"></div>
+      <div class="field"><label>Fecha y hora de envío</label><input id="r_envio" value="${r?esc(r.envio):dISO(1)+' 09:00'}"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label>Frecuencia</label><select id="r_frec">${['Única','Diaria','Semanal','Mensual','Personalizada'].map(f=>`<option ${r&&r.frecuencia===f?'selected':''}>${f}</option>`).join('')}</select></div>
+      <div class="field"><label>Canal</label><select id="r_canal">${['Correo electrónico','Notificación interna','WhatsApp'].map(c=>`<option ${r&&r.canal===c?'selected':''}>${c}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>Estado</label><select id="r_estado">${['Activo','Pausado','Enviado'].map(s=>`<option ${r&&r.estado===s?'selected':''}>${s}</option>`).join('')}</select></div>
+  `,[
+    {t:'Cancelar',cls:'ghost',fn:closeModal},
+    {t:id?'Guardar':'Crear',cls:'',fn:()=>{
+      const o={nombre:val('r_nombre'),desc:val('r_desc'),destinatarios:val('r_dest'),envio:val('r_envio'),
+        frecuencia:val('r_frec'),canal:val('r_canal'),estado:val('r_estado')};
+      if(!o.nombre){toast('Escribe un nombre','err');return;}
+      if(id)Object.assign(r,o);else{o.id='R'+Date.now();S.reminders.push(o);}
+      save();closeModal();renderReminders();renderHome();toast(id?'Recordatorio actualizado':'Recordatorio creado','ok');
+    }}
+  ]);
+}
+
+/* ---------- ALERTS ---------- */
+function renderAlerts(){
+  const fn=document.getElementById('aNivel').value;
+  const rows=S.alerts.filter(a=>!fn||a.nivel===fn);
+  const map={'Crítico':'d-red','Atención':'d-amber','Completado':'d-green','Informativo':'d-blue'};
+  const pmap={'Crítico':'p-red','Atención':'p-amber','Completado':'p-green','Informativo':'p-blue'};
+  document.getElementById('alertList').innerHTML=rows.map(a=>`<div class="alert-row" style="opacity:${a.leida?.55:1}">
+    <div class="alert-dot ${map[a.nivel]}"></div>
+    <div class="body"><b>${a.tipo}</b> <span class="pill ${pmap[a.nivel]}">${a.nivel}</span>
+      <p>${a.desc}</p><small>${a.responsable} · ${fmt(a.fecha)}</small></div>
+    <div class="act">${a.leida?'<span class="pill p-gray">Leída</span>':`<button class="btn ghost sm" onclick="readAlert('${a.id}')">Marcar leída</button>`}</div>
+  </div>`).join('')||'<div class="empty">Sin alertas en este nivel.</div>';
+  updateBadges();
+}
+function readAlert(id){const a=S.alerts.find(x=>x.id===id);a.leida=true;save();renderAlerts();renderHome();}
+function markAllAlertsRead(){S.alerts.forEach(a=>a.leida=true);save();renderAlerts();renderHome();toast('Alertas marcadas como leídas','ok');}
+
+/* ---------- USERS ---------- */
+function renderUsers(){
+  const q=(document.getElementById('userSearch').value||'').toLowerCase();
+  const rows=S.users.filter(u=>!q||u.nombre.toLowerCase().includes(q)||u.correo.toLowerCase().includes(q));
+  document.getElementById('userBody').innerHTML=rows.map(u=>`<tr>
+    <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:30px;height:30px;font-size:11px">${initials(u.nombre)}</div><b>${u.nombre}</b></div></td>
+    <td>${u.correo}</td><td><span class="role-tag">${u.rol}</span></td><td>${u.area}</td>
+    <td><span class="pill ${u.estado==='Activo'?'p-green':'p-gray'}">${u.estado}</span></td>
+    <td style="text-align:right"><button class="btn ghost sm" onclick="openUser('${u.id}')">Editar</button></td>
+  </tr>`).join('');
+}
+function openUser(id){
+  const u=id?S.users.find(x=>x.id===id):null;
+  modal(id?'Editar usuario':'Nuevo usuario',`
+    <div class="field"><label>Nombre</label><input id="u_nombre" value="${u?esc(u.nombre):''}"></div>
+    <div class="field"><label>Correo</label><input id="u_correo" value="${u?esc(u.correo):''}"></div>
+    <div class="two">
+      <div class="field"><label>Rol</label><select id="u_rol">${['Administrador RRHH','Jefe de área','Colaborador'].map(r=>`<option ${u&&u.rol===r?'selected':''}>${r}</option>`).join('')}</select></div>
+      <div class="field"><label>Área</label><select id="u_area">${AREAS.map(a=>`<option ${u&&u.area===a?'selected':''}>${a}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>Estado</label><select id="u_estado">${['Activo','Inactivo'].map(s=>`<option ${u&&u.estado===s?'selected':''}>${s}</option>`).join('')}</select></div>
+  `,[
+    {t:'Cancelar',cls:'ghost',fn:closeModal},
+    {t:id?'Guardar':'Crear',cls:'',fn:()=>{
+      const o={nombre:val('u_nombre'),correo:val('u_correo'),rol:val('u_rol'),area:val('u_area'),estado:val('u_estado')};
+      if(!o.nombre){toast('Escribe un nombre','err');return;}
+      if(id)Object.assign(u,o);else{o.id='U'+Date.now();S.users.push(o);}
+      save();closeModal();renderUsers();toast(id?'Usuario actualizado':'Usuario creado','ok');
+    }}
+  ]);
+}
+
+/* ---------- NOTIFICATIONS ---------- */
+function renderNotifs(){
+  const ft=document.getElementById('nTipo').value;
+  const rows=S.notifs.filter(n=>!ft||n.tipo===ft).slice().reverse();
+  const map={'Alerta':'d-red','Recordatorio':'d-blue','Tarea':'d-amber'};
+  document.getElementById('notifList').innerHTML=rows.map(n=>`<div class="alert-row" style="opacity:${n.leida?.55:1}">
+    <div class="alert-dot ${map[n.tipo]||'d-blue'}"></div>
+    <div class="body"><b>${n.texto}</b><p>${n.tipo}</p><small>${n.fecha}</small></div>
+    <div class="act">${n.leida?'<span class="pill p-gray">Leída</span>':`<button class="btn ghost sm" onclick="readNotif('${n.id}')">Confirmar lectura</button>`}</div>
+  </div>`).join('')||'<div class="empty">Sin notificaciones.</div>';
+  updateBadges();
+}
+function readNotif(id){const n=S.notifs.find(x=>x.id===id);n.leida=true;save();renderNotifs();}
+function markAllNotifsRead(){S.notifs.forEach(n=>n.leida=true);save();renderNotifs();toast('Notificaciones leídas','ok');}
+function pushNotif(tipo,texto){S.notifs.push({id:'N'+Date.now(),tipo,texto,fecha:dISO(0)+' '+new Date().toTimeString().slice(0,5),leida:false});save();renderNotifs();}
+
+/* ---------- DASHBOARD EMBED ---------- */
+function loadEmbed(silent){
+  let url=document.getElementById('embedUrl').value.trim();
+  if(!url){toast('Pega un enlace primero','warn');return;}
+  S.embedUrl=url;save();
+  document.getElementById('embedStage').innerHTML=`<iframe src="${url}" allow="fullscreen" loading="lazy"></iframe>`;
+  if(!silent)toast('Dashboard cargado','ok');
+}
+function refreshEmbed(){if(!S.embedUrl){toast('No hay dashboard cargado','warn');return;}loadEmbed(true);toast('Vista actualizada','ok');}
+function fullEmbed(){document.getElementById('embedStage').classList.toggle('full');}
+
+/* ---------- REPORTS ---------- */
+function renderReports(){
+  const vt=S.tasks;
+  const pend=vt.filter(t=>['Pendiente','En proceso'].includes(t.estado)).length;
+  const venc=vt.filter(t=>t.estado==='Vencida').length;
+  const remEnv=S.reminders.filter(r=>r.estado==='Enviado').length;
+  const crit=S.alerts.filter(a=>a.nivel==='Crítico').length;
+  document.getElementById('reportKpis').innerHTML=`
+    ${kpi('Tareas pendientes',pend,'accent-blue','')}
+    ${kpi('Tareas vencidas',venc,'accent-red','')}
+    ${kpi('Recordatorios enviados',remEnv,'accent-green','')}
+    ${kpi('Alertas críticas',crit,'accent-amber','')}`;
+  // por responsable
+  const owners=[...new Set(S.tasks.map(t=>t.responsable))];
+  document.getElementById('repByOwner').innerHTML=owners.map(o=>{
+    const ts=S.tasks.filter(t=>t.responsable===o);const c=ts.filter(t=>t.estado==='Completada').length;const p=Math.round(c/ts.length*100);
+    return `<div class="barline" style="margin-bottom:12px"><div class="lbl">${o}</div><div class="bar" style="flex:1"><i style="width:${p}%"></i></div><div class="pct">${p}%</div></div>`;
+  }).join('');
+  document.getElementById('repByArea').innerHTML=areaBars();
+}
+function reportData(tipo){
+  switch(tipo){
+    case'Tareas pendientes':return{cols:['Título','Responsable','Área','Vence','Prioridad','Estado'],
+      rows:S.tasks.filter(t=>['Pendiente','En proceso'].includes(t.estado)).map(t=>[t.titulo,t.responsable,t.area,t.vence,t.prioridad,t.estado])};
+    case'Tareas vencidas':return{cols:['Título','Responsable','Área','Vence','Prioridad'],
+      rows:S.tasks.filter(t=>t.estado==='Vencida').map(t=>[t.titulo,t.responsable,t.area,t.vence,t.prioridad])};
+    case'Recordatorios enviados':return{cols:['Nombre','Destinatarios','Envío','Canal','Estado'],
+      rows:S.reminders.filter(r=>r.estado==='Enviado').map(r=>[r.nombre,r.destinatarios,r.envio,r.canal,r.estado])};
+    case'Alertas críticas':return{cols:['Tipo','Descripción','Responsable','Fecha'],
+      rows:S.alerts.filter(a=>a.nivel==='Crítico').map(a=>[a.tipo,a.desc,a.responsable,a.fecha])};
+    case'Cumplimiento por responsable':{const o=[...new Set(S.tasks.map(t=>t.responsable))];
+      return{cols:['Responsable','Total','Completadas','% Cumplimiento'],rows:o.map(n=>{const ts=S.tasks.filter(t=>t.responsable===n);const c=ts.filter(t=>t.estado==='Completada').length;return[n,ts.length,c,Math.round(c/ts.length*100)+'%'];})};}
+    case'Cumplimiento por área':return{cols:['Área','Total','Completadas','% Cumplimiento'],
+      rows:AREAS.map(a=>{const ts=S.tasks.filter(t=>t.area===a);const c=ts.filter(t=>t.estado==='Completada').length;return[a,ts.length,c,ts.length?Math.round(c/ts.length*100)+'%':'0%'];})};
+    default:return{cols:[],rows:[]};
+  }
+}
+function downloadReport(tipo,fmt){
+  const d=reportData(tipo);
+  if(fmt==='csv'||fmt==='excel'){
+    const sep=',';const esc=v=>`"${String(v).replace(/"/g,'""')}"`;
+    const lines=[d.cols.map(esc).join(sep),...d.rows.map(r=>r.map(esc).join(sep))];
+    const ext=fmt==='excel'?'xls':'csv';
+    dl(new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'}),`${slug(tipo)}.${ext}`);
+  }else{ // pdf -> printable HTML
+    const w=window.open('','_blank');
+    w.document.write(`<html><head><title>${tipo}</title><style>
+      body{font-family:Segoe UI,Arial;padding:32px;color:#1d2b3a}
+      h1{color:#0e2a47;font-size:20px}.meta{color:#6b7785;font-size:12px;margin-bottom:18px}
+      table{width:100%;border-collapse:collapse;font-size:12px}th{background:#0e2a47;color:#fff;text-align:left;padding:8px}
+      td{padding:7px 8px;border-bottom:1px solid #e3e8ef}tr:nth-child(even){background:#f4f6f9}</style></head><body>
+      <h1>People Management Hub — ${tipo}</h1>
+      <div class="meta">Generado el ${new Date().toLocaleString('es-PE')} · ${d.rows.length} registros</div>
+      <table><thead><tr>${d.cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+      <tbody>${d.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>
+      <script>window.onload=()=>window.print()<\/script></body></html>`);
+    w.document.close();
+  }
+  toast(`Reporte "${tipo}" (${fmt.toUpperCase()}) generado`,'ok');
+}
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href);}
+function slug(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-');}
+
+/* ---------- MODAL / UTIL ---------- */
+function modal(title,bodyHTML,buttons){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=bodyHTML;
+  document.getElementById('modalFoot').innerHTML='';
+  buttons.forEach(b=>{const el=document.createElement('button');el.className='btn '+(b.cls||'');el.textContent=b.t;el.onclick=b.fn;document.getElementById('modalFoot').appendChild(el);});
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function val(id){return document.getElementById(id).value.trim();}
+function esc(s){return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function toast(msg,kind){const t=document.createElement('div');t.className='toast '+(kind||'');t.textContent=msg;
+  document.getElementById('toast').appendChild(t);setTimeout(()=>t.remove(),3000);}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+/* boot */
+initLogin();
+</script>
+</body>
+</html>
